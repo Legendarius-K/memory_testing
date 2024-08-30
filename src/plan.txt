@@ -1,0 +1,23 @@
+1. All cards on the board
+
+    Two identical card arrays with objects {id: , imagePath: }
+    Join cards in same array
+    Scramble that array
+    Map and render cards in Card component on the board (in buttons?)
+
+
+2. Click a card to show image
+
+
+
+
+
+3. Click next card and see if it matches
+
+
+
+4. If no match - miss point / If match - proceed
+
+
+
+5. When all cards are cleared - add total moves to highscore list
