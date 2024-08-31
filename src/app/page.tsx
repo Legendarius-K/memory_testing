@@ -8,7 +8,6 @@ import Pineapple from "@/../public/pineapple.svg"
 import Car from "@/../public/car.svg"
 import Flower from "@/../public/flower.svg"
 import Cabin from "@/../public/cabin.svg"
-import Card from "@/components/Card";
 import { use, useEffect, useState } from "react";
 import NewGameBtn from "@/components/NewGameBtn";
 
@@ -88,7 +87,7 @@ export default function Home() {
         const currentHighscore = localStorage.getItem('highscore');
         // if(currentHighscore)
         // localStorage.setItem('highscore', '0');
-        setHighscore(parseInt(currentHighscore ?? '0', 10)); // Use nullish coalescing to provide a default value
+        setHighscore(parseInt(currentHighscore ?? '0', 10)); 
 
 
     }, []);
