@@ -17,7 +17,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`m-0  bg-slate-800 ${inter.className}`}>
+            <body className={`m-0 bg-slate-800 ${inter.className}`}>
                 <Header />
                 <section className="flex flex-col items-center">
                     {children}

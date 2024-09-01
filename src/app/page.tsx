@@ -85,8 +85,6 @@ export default function Home() {
 
     useEffect(() => {
         const currentHighscore = localStorage.getItem('highscore');
-        // if(currentHighscore)
-        // localStorage.setItem('highscore', '0');
         setHighscore(parseInt(currentHighscore ?? '0', 10)); 
 
 
@@ -108,12 +106,12 @@ export default function Home() {
         <main className="flex flex-col items-center">
             <section className="grid md:grid-cols-4 grid-cols-3 w-full max-w-[1000px] max-h-screen gap-2 md:gap-4 lg:gap-8 my-8">
                 {cards.map((card, index) => {
-                    return <button disabled={solved.includes(index) || flipped.includes(index) || flipped.length === 2 && true}
+                    return <button data-testid={`card-${index}`} disabled={solved.includes(index) || flipped.includes(index) || flipped.length === 2 && true}
                         onClick={() => handleClick(index)}
                         key={index}
-                        className={`md:h-44 md:w-44 h-28 w-28 text-8xl font-thin flex justify-center items-center cursor-pointer transform bg-slate-500 hover:bg-slate-600 p-4  border-2 border-orange-800 transition-transform duration-300 ${flipped.includes(index) || solved.includes(index) ? "rotate-180" : ''}`}>
+                        className={` md:h-44 md:w-44 h-28 w-28 text-8xl font-thin flex justify-center items-center cursor-pointer transform bg-slate-500 hover:bg-slate-600 p-4  border-2 border-orange-800 transition-transform duration-300 ${flipped.includes(index) || solved.includes(index) ? "rotate-180" : ''}`}>
                         {flipped.includes(index) || solved.includes(index) ? (
-                            <Image className="rotate-180" src={card} alt="Card" />
+                            <Image data-testid="card-image" className="rotate-180" src={card} alt="Card" />
                         ) : (
                             '?'
                         )}
