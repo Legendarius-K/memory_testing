@@ -11,11 +11,11 @@ describe("Make sure card are acting as expected", () => {
     test("Check that the cards render an image when clicked", () => {
         render(<Home />)
 
-        const card = screen.getByTestId("card-0")
+        const card = screen.getAllByTestId("card")
         let cardImage = screen.queryByTestId("card-image")
         expect(cardImage).toBe(null)
 
-        fireEvent.click(card)
+        fireEvent.click(card[0])
         cardImage = screen.queryByTestId("card-image")
         expect(cardImage).toBeInTheDocument()
     })
@@ -38,6 +38,7 @@ describe("Make sure card are acting as expected", () => {
 
         const cards = screen.getAllByText("?");
         let matched = false;
+        let visibleImages = screen.queryAllByTestId("card-image");
 
         for (let i = 1; i < cards.length; i++) {
             fireEvent.click(cards[0]);
@@ -45,9 +46,9 @@ describe("Make sure card are acting as expected", () => {
             fireEvent.click(cards[i]);
 
             await waitFor(() => {
-                const visibleImages = screen.queryAllByTestId("card-image");
+                visibleImages = screen.queryAllByTestId("card-image");
                 if (visibleImages.length === 2) {
-                    
+
                     const firstImage = visibleImages[0] as HTMLImageElement;
                     const secondImage = visibleImages[1] as HTMLImageElement;
 
@@ -62,7 +63,133 @@ describe("Make sure card are acting as expected", () => {
             }
         }
 
+        visibleImages = screen.getAllByTestId("card-image");
+
+        expect(visibleImages.length).toBe(2)
         expect(matched).toBe(true);
     });
 
+    test("Check that the two clicked cards unflip if no match", async () => {
+        render(<Home />)
+        const cards = screen.getAllByTestId("card");
+        let visibleImages = screen.queryAllByTestId("card-image");
+
+        fireEvent.click(cards[0])
+        fireEvent.click(cards[1])
+
+        visibleImages = screen.queryAllByTestId("card-image");
+
+        const firstImage = visibleImages[0] as HTMLImageElement;
+        const secondImage = visibleImages[1] as HTMLImageElement;
+
+        if (firstImage.src !== secondImage.src) {
+            await waitFor(() => {
+                visibleImages = screen.queryAllByTestId("card-image");
+                expect(visibleImages).toBe(0)
+            }, { timeout: 1500 })
+        }
+    })
+
+    // test("Ensure that all matches are found by clicking every card in combination with every other card", async () => {
+    //     render(<Home />);
+
+    //     const cards = screen.getAllByTestId("card");
+    //     expect(cards.length).toBe(12);
+
+    //     for (let i = 0; i < cards.length; i++) {
+    //         for (let j = i + 1; j < cards.length; j++) {
+    //             await waitFor(async() => {
+    //                 await waitFor(() => {
+    //                     fireEvent.click(cards[i]);
+    //                 }, { timeout: 5000 })
+    //                 await waitFor(() => {
+    //                     fireEvent.click(cards[j]);
+    //                 }, { timeout: 5000 })
+
+
+    //             }, { timeout: 5000 })
+
+    //             // await new Promise((resolve) => setTimeout(resolve, 1500));
+    //         }
+    //     }
+
+    //     expect(screen.queryAllByTestId("card-image").length).toBe(12);
+    // });
+
+
+
+})
+
+describe("Ensure that New Game button resets the game", () => {
+    test("Check that cards unflip when clicking New Game button", () => {
+        render(<Home />)
+        const newGameBtn = screen.getByTestId("new-game-btn")
+        const cards = screen.getAllByTestId("card");
+        let visibleImages = screen.queryAllByTestId("card-image");
+
+        fireEvent.click(cards[0])
+        visibleImages = screen.queryAllByTestId("card-image");
+
+        expect(visibleImages.length).toBe(1)
+
+        fireEvent.click(newGameBtn)
+        visibleImages = screen.queryAllByTestId("card-image");
+
+        expect(visibleImages.length).toBe(0)
+    })
+
+    test("Check that 'moves' reset to 0 when clicking New Game button", () => {
+        render(<Home />)
+        const moves = screen.getByTestId("moves")
+        const cards = screen.getAllByTestId("card");
+        const newGameBtn = screen.getByTestId("new-game-btn")
+
+        fireEvent.click(cards[0])
+        expect(moves).toHaveTextContent("1")
+
+        fireEvent.click(newGameBtn)
+        expect(moves).toHaveTextContent("0")
+    })
+
+    test("Check that solved state is reset when clicking New Game button", async () => {
+        render(<Home />);
+
+        const cards = screen.getAllByText("?");
+        let matched = false;
+        let visibleImages = screen.queryAllByTestId("card-image");
+        const newGameBtn = screen.getByTestId("new-game-btn")
+
+        for (let i = 1; i < cards.length; i++) {
+            fireEvent.click(cards[0]);
+
+            fireEvent.click(cards[i]);
+
+            await waitFor(() => {
+                visibleImages = screen.queryAllByTestId("card-image");
+                if (visibleImages.length === 2) {
+
+                    const firstImage = visibleImages[0] as HTMLImageElement;
+                    const secondImage = visibleImages[1] as HTMLImageElement;
+
+                    if (firstImage.src === secondImage.src) {
+                        matched = true;
+                    }
+                }
+            }, { timeout: 1100 });
+
+            if (matched) {
+                break;
+            }
+        }
+
+        visibleImages = screen.getAllByTestId("card-image");
+
+        expect(visibleImages.length).toBe(2)
+        expect(matched).toBe(true);
+
+        fireEvent.click(newGameBtn)
+        visibleImages = screen.queryAllByTestId("card-image");
+
+        expect(visibleImages.length).toBe(0)
+    });
 })
