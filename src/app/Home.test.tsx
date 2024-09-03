@@ -1,7 +1,27 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, act } from "@testing-library/react";
 import Home from "./page";
 
+beforeEach(() => {
+    jest.useFakeTimers();
+});
+
+afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+});
+
+jest.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => {
+    if (key === 'highscore') {
+        return "13";  // Mocked highscore value
+    }
+    return null;
+});
+
+jest.spyOn(Storage.prototype, 'setItem');
+
 describe("Make sure card are acting as expected", () => {
+
+
     test("Check that the cards render properly with a question mark", () => {
         render(<Home />)
         const cards = screen.getAllByText("?")
@@ -42,7 +62,6 @@ describe("Make sure card are acting as expected", () => {
 
         for (let i = 1; i < cards.length; i++) {
             fireEvent.click(cards[0]);
-
             fireEvent.click(cards[i]);
 
             await waitFor(() => {
@@ -68,20 +87,20 @@ describe("Make sure card are acting as expected", () => {
         expect(visibleImages.length).toBe(2)
         expect(matched).toBe(true);
     });
-
+    
     test("Check that the two clicked cards unflip if no match", async () => {
         render(<Home />)
         const cards = screen.getAllByTestId("card");
         let visibleImages = screen.queryAllByTestId("card-image");
-
+        
         fireEvent.click(cards[0])
         fireEvent.click(cards[1])
-
+        
         visibleImages = screen.queryAllByTestId("card-image");
-
+        
         const firstImage = visibleImages[0] as HTMLImageElement;
         const secondImage = visibleImages[1] as HTMLImageElement;
-
+        
         if (firstImage.src !== secondImage.src) {
             await waitFor(() => {
                 visibleImages = screen.queryAllByTestId("card-image");
@@ -89,36 +108,36 @@ describe("Make sure card are acting as expected", () => {
             }, { timeout: 1500 })
         }
     })
+    
 
-    // test("Ensure that all matches are found by clicking every card in combination with every other card", async () => {
-    //     render(<Home />);
+    test("Ensure that all matches are found by systematically clicking every card in combination", () => {
+        render(<Home />);
 
-    //     const cards = screen.getAllByTestId("card");
-    //     expect(cards.length).toBe(12);
+        const cards = screen.getAllByTestId("card");
 
-    //     for (let i = 0; i < cards.length; i++) {
-    //         for (let j = i + 1; j < cards.length; j++) {
-    //             await waitFor(async() => {
-    //                 await waitFor(() => {
-    //                     fireEvent.click(cards[i]);
-    //                 }, { timeout: 5000 })
-    //                 await waitFor(() => {
-    //                     fireEvent.click(cards[j]);
-    //                 }, { timeout: 5000 })
+        for (let i = 0; i < cards.length; i++) {
+            for (let j = i + 1; j < cards.length; j++) {
+                fireEvent.click(cards[i]);
+                fireEvent.click(cards[j]);
 
+                act(() => {
+                    jest.advanceTimersByTime(1100);
+                });
 
-    //             }, { timeout: 5000 })
+                const flippedCards = screen.getAllByTestId("card-image");
 
-    //             // await new Promise((resolve) => setTimeout(resolve, 1500));
-    //         }
-    //     }
+                if (flippedCards.length === (i + 1) * 2) {
+                    break; 
+                }
+            }
+        }
 
-    //     expect(screen.queryAllByTestId("card-image").length).toBe(12);
-    // });
-
-
-
+        const finalFlippedCards = screen.getAllByTestId("card-image");
+        expect(finalFlippedCards.length).toBe(12);  
+    });
 })
+
+
 
 describe("Ensure that New Game button resets the game", () => {
     test("Check that cards unflip when clicking New Game button", () => {
@@ -193,3 +212,44 @@ describe("Ensure that New Game button resets the game", () => {
         expect(visibleImages.length).toBe(0)
     });
 })
+
+describe("Ensure that 'highscore' and 'moves' work as intended", () => {
+
+    test("Ensure new highscore is set if lower than current highscore using mock local storage", () => {
+        render(<Home />);
+
+        let moves = screen.getByTestId("moves");
+        let highscore = screen.getByTestId("highscore");
+        const cards = screen.getAllByTestId("card");
+
+        expect(moves).toHaveTextContent("0");
+        expect(highscore).toHaveTextContent("13");  
+
+        for (let i = 0; i < cards.length; i++) {
+            for (let j = i + 1; j < cards.length; j++) {
+                fireEvent.click(cards[i]);
+                fireEvent.click(cards[j]);
+
+                act(() => {
+                    jest.advanceTimersByTime(1100);
+                });
+
+                const flippedCards = screen.getAllByTestId("card-image");
+
+                if (flippedCards.length === (i + 1) * 2) {
+                    break;
+                }
+            }
+        }
+
+        highscore = screen.getByTestId("highscore");
+        moves = screen.getByTestId("moves");
+        expect(moves).toHaveTextContent("12");
+        expect(highscore).toHaveTextContent("12");
+
+        expect(localStorage.setItem).toHaveBeenCalledWith('highscore', '12');
+    }); 
+})
+
+
+

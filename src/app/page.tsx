@@ -11,11 +11,6 @@ import Cabin from "@/../public/cabin.svg"
 import { use, useEffect, useState } from "react";
 import NewGameBtn from "@/components/NewGameBtn";
 
-// type CardsArrayProps = {
-//     id: string
-//     image: string
-// }
-
 export default function Home() {
     const generateDeck = () => {
 
@@ -26,7 +21,7 @@ export default function Home() {
             Car,
             Flower,
             Cabin
-        ]
+        ] 
 
         const allCards = [...cards, ...cards]
         const scrambledCards = shuffleArray(allCards);
@@ -46,12 +41,12 @@ export default function Home() {
             if (cards[first] === cards[second]) {
                 setSolved([...solved, ...flipped]);
             }
-            setFlipped([])
+                setFlipped([])
         }
 
         if (flipped.length === 2) {
             setTimeout(() => {
-                checkForMatch()
+            checkForMatch()
             }, 1000)
         }
 
@@ -85,9 +80,7 @@ export default function Home() {
 
     useEffect(() => {
         const currentHighscore = localStorage.getItem('highscore');
-        setHighscore(parseInt(currentHighscore ?? '0', 10)); 
-
-
+        setHighscore(parseInt(currentHighscore ?? '0', 10));
     }, []);
 
     useEffect(() => {
