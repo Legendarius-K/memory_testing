@@ -12,7 +12,10 @@ afterEach(() => {
 
 jest.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => {
     if (key === 'highscore') {
-        return "13";  // Mocked highscore value
+        return "13"; 
+    }
+    if (key === 'name') {
+        return 'Bartholomew'; 
     }
     return null;
 });
@@ -249,7 +252,72 @@ describe("Ensure that 'highscore' and 'moves' work as intended", () => {
 
         expect(localStorage.setItem).toHaveBeenCalledWith('highscore', '12');
     }); 
+
+    
+    test("Check that the highscore popup updates the highscore name", () => {
+        render(<Home/>)
+
+        let highscorePopup = screen.queryByTestId("highscore-popup")
+        expect(highscorePopup).not.toBeInTheDocument()
+
+        const cards = screen.getAllByTestId("card");
+
+        for (let i = 0; i < cards.length; i++) {
+            for (let j = i + 1; j < cards.length; j++) {
+                fireEvent.click(cards[i]);
+                fireEvent.click(cards[j]);
+
+                act(() => {
+                    jest.advanceTimersByTime(1100);
+                });
+
+                const flippedCards = screen.getAllByTestId("card-image");
+
+                if (flippedCards.length === (i + 1) * 2) {
+                    break;
+                }
+            }
+        }
+
+        const finalFlippedCards = screen.getAllByTestId("card-image");
+        expect(finalFlippedCards.length).toBe(12);  
+
+        act(() => {
+            jest.advanceTimersByTime(1100);
+        });
+
+        highscorePopup = screen.queryByTestId("highscore-popup")
+        expect(highscorePopup).toBeInTheDocument()
+
+        let userInput = screen.getByTestId("input")
+        const button = screen.getByTestId("highscore-button")
+        let highscore = screen.getByTestId("highscore")
+        let highscoreName = screen.getByTestId("highscore-name")
+        const mockName = "Bartholomew"
+
+        fireEvent.change(userInput, { target: { value: mockName } })
+
+        userInput = screen.getByTestId("input")
+
+        expect((userInput as HTMLInputElement).value).toBe(mockName)
+
+        fireEvent.click(button)
+
+        expect(localStorage.setItem).toHaveBeenCalledWith('name', mockName);
+
+        act(() => {
+            jest.advanceTimersByTime(4000);
+        });
+
+        highscore = screen.getByTestId("highscore")
+        highscoreName = screen.getByTestId("highscore-name")
+
+        expect(highscore).toHaveTextContent("12")
+        expect(highscoreName).toHaveTextContent(mockName + ":")
+    })
 })
+
+
 
 
 

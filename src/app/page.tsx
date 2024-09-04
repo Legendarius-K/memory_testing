@@ -10,6 +10,7 @@ import Flower from "@/../public/flower.svg"
 import Cabin from "@/../public/cabin.svg"
 import { use, useEffect, useState } from "react";
 import NewGameBtn from "@/components/NewGameBtn";
+import Highscore from "@/components/Highscore";
 
 export default function Home() {
     const generateDeck = () => {
@@ -21,7 +22,7 @@ export default function Home() {
             Car,
             Flower,
             Cabin
-        ] 
+        ]
 
         const allCards = [...cards, ...cards]
         const scrambledCards = shuffleArray(allCards);
@@ -32,6 +33,8 @@ export default function Home() {
     const [solved, setSolved] = useState<number[]>([])
     const [moves, setMoves] = useState<number>(0)
     const [highscore, setHighscore] = useState<number>(0)
+    const [newHighscore, setNewHighscore] = useState<boolean>(false)
+    const [highscoreName, setHighscoreName] = useState<string | null>("")
     const [win, setWin] = useState<boolean>(false)
 
     useEffect(() => {
@@ -41,16 +44,15 @@ export default function Home() {
             if (cards[first] === cards[second]) {
                 setSolved([...solved, ...flipped]);
             }
-                setFlipped([])
+            setFlipped([])
         }
 
         if (flipped.length === 2) {
             setTimeout(() => {
-            checkForMatch()
+                checkForMatch()
             }, 1000)
         }
 
-        console.log(solved.length);
     }, [cards, flipped, solved])
 
     const handleClick = (index: number) => {
@@ -67,6 +69,7 @@ export default function Home() {
         setCards(generateDeck())
         setFlipped([])
         setWin(false)
+        setNewHighscore(false)
     }
 
     useEffect(() => {
@@ -74,9 +77,6 @@ export default function Home() {
             setWin(true)
         }
     }, [solved])
-    useEffect(() => {
-        console.log("win?" + win);
-    }, [win])
 
     useEffect(() => {
         const currentHighscore = localStorage.getItem('highscore');
@@ -85,15 +85,17 @@ export default function Home() {
 
     useEffect(() => {
         if (win === true) {
-            if (highscore.toString() === '0') {
-                setHighscore(moves)
-                localStorage.setItem('highscore', moves.toString())
-            } else if (moves < highscore) {
+            if (highscore.toString() === '0' || (moves < highscore)) {
+                setNewHighscore(true)
                 setHighscore(moves)
                 localStorage.setItem('highscore', moves.toString())
             }
         }
     }, [win])
+
+    useEffect(() => {
+        setHighscoreName(localStorage.getItem("name"))
+    }, [newHighscore])
 
     return (
         <main className="flex flex-col items-center">
@@ -119,9 +121,14 @@ export default function Home() {
                 <NewGameBtn newRound={newRound} />
                 <div className="flex flex-col justify-center items-center">
                     <h2 className="text-2xl">Highscore:</h2>
-                    <p data-testid="highscore" className={`text-3xl text-green-600`}>{highscore}</p>
+                    <div className="flex items-center">
+                        <p data-testid="highscore-name" className="mr-2 text-xl text-orange-900">{highscoreName && highscoreName + ":"}</p>
+                        <p data-testid="highscore" className={`text-3xl text-green-600`}> {highscore}</p>
+                    </div>
                 </div>
             </section>
+            {newHighscore && <Highscore updateNewHighscore={setNewHighscore} />}
+
         </main>
     );
 }
